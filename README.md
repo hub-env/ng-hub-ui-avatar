@@ -4,7 +4,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/ng-hub-ui-avatar.svg)](https://www.npmjs.com/package/ng-hub-ui-avatar)
 [![npm](https://img.shields.io/npm/dt/ng-hub-ui-avatar.svg)](https://www.npmjs.com/package/ng-hub-ui-avatar)
-[![license](https://img.shields.io/npm/l/ng-hub-ui-avatar.svg)](https://github.com/carlos-morcillo/ng-hub-ui-avatar/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/ng-hub-ui-avatar.svg)](https://github.com/hub-env/ng-hub-ui-avatar/blob/main/LICENSE)
 
 A universal avatar component for Angular applications that renders avatars from multiple sources (Gravatar, GitHub, Facebook, custom images, initials or plain text) and applies an automatic fallback strategy when a source fails.
 
@@ -27,6 +27,7 @@ This package is part of [Hub UI](https://hubui.dev/en/), a collection of Angular
 - Docs: https://hubui.dev/en/avatar/overview/
 - Live examples: https://hubui.dev/en/avatar/examples/
 - Hub UI: https://hubui.dev/en/
+- Hub UI on GitHub (issues, roadmap and contributing): https://github.com/hub-env/hub-ui
 
 ## 🧩 Library Family `ng-hub-ui`
 
@@ -452,7 +453,7 @@ If you find this project helpful and would like to support its development, you 
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/carlosmorcillo)
 
-- **Issues**: [GitHub Issues](https://github.com/carlos-morcillo/ng-hub-ui-avatar/issues)
+- **Issues**: [GitHub Issues](https://github.com/hub-env/hub-ui/issues)
 - **Author**: [Carlos Morcillo](https://www.carlosmorcillo.com)
 
 ## License

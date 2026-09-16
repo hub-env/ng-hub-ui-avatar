@@ -4,7 +4,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/ng-hub-ui-avatar.svg)](https://www.npmjs.com/package/ng-hub-ui-avatar)
 [![npm](https://img.shields.io/npm/dt/ng-hub-ui-avatar.svg)](https://www.npmjs.com/package/ng-hub-ui-avatar)
-[![license](https://img.shields.io/npm/l/ng-hub-ui-avatar.svg)](https://github.com/carlos-morcillo/ng-hub-ui-avatar/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/ng-hub-ui-avatar.svg)](https://github.com/hub-env/ng-hub-ui-avatar/blob/main/LICENSE)
 
 Un componente de avatar universal para aplicaciones Angular que muestra avatares a partir de múltiples fuentes (Gravatar, GitHub, Facebook, imágenes personalizadas, iniciales o texto plano) y aplica una estrategia de reserva automática cuando una fuente falla.
 
@@ -30,6 +30,7 @@ Este paquete forma parte de [Hub UI](https://hubui.dev/en/), una colección de b
 - Documentación: https://hubui.dev/en/avatar/overview/
 - Ejemplos en vivo: https://hubui.dev/en/avatar/examples/
 - Hub UI: https://hubui.dev/en/
+- Hub UI en GitHub (incidencias, roadmap y cómo contribuir): https://github.com/hub-env/hub-ui
 
 ## 🧩 Familia de bibliotecas `ng-hub-ui`
 
@@ -455,7 +456,7 @@ Si este proyecto te resulta útil y quieres apoyar su desarrollo, puedes invitar
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/carlosmorcillo)
 
-- **Issues**: [GitHub Issues](https://github.com/carlos-morcillo/ng-hub-ui-avatar/issues)
+- **Issues**: [GitHub Issues](https://github.com/hub-env/hub-ui/issues)
 - **Autor**: [Carlos Morcillo](https://www.carlosmorcillo.com)
 
 ## Licencia
