@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [22.12.2] - 2026-09-20
+
+### Changed
+
+- The npm keywords declare `ng-hub-ui`, the family name somebody searching for the ecosystem
+  types. Metadata only: no code, types or styles change.
+
 ## [22.12.1] - 2026-09-16
 
 ### Changed
