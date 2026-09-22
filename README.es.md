@@ -457,7 +457,15 @@ Si este proyecto te resulta útil y quieres apoyar su desarrollo, puedes invitar
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/carlosmorcillo)
 
 - **Issues**: [GitHub Issues](https://github.com/hub-env/hub-ui/issues)
-- **Autor**: [Carlos Morcillo](https://www.carlosmorcillo.com)
+- **Autor**: [Carlos Morcillo Fernández](https://www.carlosmorcillo.com)
+
+## Soporte comercial
+
+Mantengo estas librerías yo mismo: soy [Carlos Morcillo Fernández](https://www.carlosmorcillo.com), arquitecto frontend autónomo, y trabajo con equipos que construyen y mantienen aplicaciones Angular.
+
+Si tu equipo depende de Hub-UI y necesita más de lo que se resuelve en un hilo de incidencias, eso es a lo que me dedico: auditorías de arquitectura, sistemas de diseño, migraciones de Angular y mentoría de equipos. Cuando el proyecto pide además diseño y un equipo completo, lo llevo por [Frog Hub](https://froghub.es), mi estudio de desarrollo.
+
+Aquí están [los servicios](https://www.carlosmorcillo.com/servicios/) y aquí puedes [contarme tu proyecto](https://www.carlosmorcillo.com/contacto/).
 
 ## Licencia
 
