@@ -1,7 +1,7 @@
 {
 	"name": "ng-hub-ui-avatar",
 	"description": "A universal avatar component for Angular applications that fetches / generates avatar based on the information you have about the user. Supports initials, Gravatar integration, custom images and styling options. Perfect for user profiles and comment systems.",
-	"version": "22.12.3",
+	"version": "22.13.0",
 	"keywords": [
 		"angular",
 		"avatar",
@@ -36,8 +36,8 @@
 		"./styles/mixins/avatar-theme": "./styles/mixins/_avatar-theme.scss"
 	},
 	"peerDependencies": {
-		"@angular/common": ">=17.1.0",
-		"@angular/core": ">=17.1.0",
+		"@angular/common": ">=20.2.0",
+		"@angular/core": ">=20.2.0",
 		"ng-hub-ui-ds": ">=22.0.0",
 		"ng-hub-ui-utils": ">=22.7.0"
 	},

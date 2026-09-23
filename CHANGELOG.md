@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [22.13.0] - 2026-09-23
+
+### Changed
+
+- **BREAKING — the Angular floor rises from `17.1.0` to `20.2.0`.** The old range was
+  measured from the source alone, and its template uses `@else if (value(); as name)`, and an `as` on an `@else if` is only accepted from Angular 20.2 — the linker of 20.1 refuses it outright. An application below the new floor could install this
+  package and then fail to build, with an error that pointed at Angular rather than here; it now
+  gets the peer warning it should always have had. Nothing that worked stops working. See
+  `BREAKING_CHANGES.md`.
+- **The floor is proved by running it now, not only derived.** `npm run floors:matrix` builds a real
+  project pinned to the oldest Angular this package claims, installs it there, typechecks the
+  published types against that version's `@angular/*` and runs that version's linker over the
+  compiled output. It is what found this.
+
 ## [22.12.3] - 2026-09-23
 
 ### Changed
@@ -319,7 +333,6 @@ All notable changes to this project will be documented in this file.
 
 - Aligned with Angular 22.
 - README documentation standardized.
-
 
 ## [21.1.1] - 2026-06-14
 

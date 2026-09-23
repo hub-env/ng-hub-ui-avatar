@@ -2,6 +2,18 @@
 
 This document details the breaking changes introduced in major versions of `ng-hub-ui-avatar` and how to migrate your codebase.
 
+## [22.13.0] - 2026-09-23
+
+### Angular below 20.2.0 is no longer supported
+
+- **Change**: the `@angular/*` peer ranges move from `>=17.1.0` to `>=20.2.0`.
+
+- **Why**: Its template uses `@else if (value(); as name)`, and an `as` on an `@else if` is only accepted from Angular 20.2 — the linker of 20.1 refuses it outright.
+
+- **Impact — an application below 20.2.0 gets a peer warning where it used to get a build error.**
+  Nothing that worked stops working: those versions never compiled against this package. Upgrade
+  Angular to 20.2.0 or stay on the previous release.
+
 ## [22.12.0] - 2026-09-08
 
 ### `AvatarComponent` and `AvatarService` are renamed
@@ -19,7 +31,7 @@ This document details the breaking changes introduced in major versions of `ng-h
   already carries the prefix; these two were the leftovers.
 
 - **What happens if you do nothing**: today, nothing at all. `import { AvatarComponent } from
-  'ng-hub-ui-avatar'` still compiles, `imports: [AvatarComponent]` still works, and
+'ng-hub-ui-avatar'` still compiles, `imports: [AvatarComponent]` still works, and
   `inject(AvatarService)` still returns the same singleton, because each alias resolves to the class
   it renames. Your editor will mark them struck through, which is the warning. In 23.0.0 both
   disappear from the entry point and those imports stop compiling — loudly, at build time.
@@ -72,6 +84,7 @@ bootstrapApplication(App, { providers: [provideAvatar({ colors: ['#1abc9c'] })] 
 ```
 
 ## [22.10.0] - 2026-09-06
+
 ### The avatar's render state is internal, and `ngOnChanges` is gone
 
 - **Change**: `avatarSrc`, `avatarText`, `avatarStyle`, `hostStyle`, `hasCustomContent` and
@@ -131,12 +144,12 @@ bootstrapApplication(App, { providers: [provideAvatar({ colors: ['#1abc9c'] })] 
 
 The presence-only `status` input has been replaced by a more general **`badge`** overlay that can be a plain dot **or** carry a label (count / text), coloured by a **semantic** `badgeColor`.
 
-| Before (`status`) | After (`badge` + `badgeColor`) |
-| ----------------- | ------------------------------ |
-| `status="online"` | `badge badgeColor="success"` |
-| `status="away"` | `badge badgeColor="warning"` |
-| `status="busy"` | `badge badgeColor="danger"` |
-| `status="offline"` | `badge badgeColor="secondary"` |
+| Before (`status`)                               | After (`badge` + `badgeColor`)                                  |
+| ----------------------------------------------- | --------------------------------------------------------------- |
+| `status="online"`                               | `badge badgeColor="success"`                                    |
+| `status="away"`                                 | `badge badgeColor="warning"`                                    |
+| `status="busy"`                                 | `badge badgeColor="danger"`                                     |
+| `status="offline"`                              | `badge badgeColor="secondary"`                                  |
 | `status="custom"` + `--hub-avatar-status-color` | `badge badgeColor="<semantic>"` (or `--hub-avatar-badge-color`) |
 
 New: a **labelled** badge — `<hub-avatar badge="4k" badgeColor="danger">`.

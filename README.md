@@ -8,7 +8,10 @@
 
 A universal avatar component for Angular applications that renders avatars from multiple sources (Gravatar, GitHub, Facebook, custom images, initials or plain text) and applies an automatic fallback strategy when a source fails.
 
-> **⚠️ BREAKING CHANGES:** 22.12.0 renames `AvatarComponent` to `HubAvatarComponent` and
+> **⚠️ BREAKING CHANGES:** 22.13.0 raises the Angular floor to 20.2: the template uses an `as` on an
+> `@else if`, which Angular did not accept until then, so the old range promised a version this
+> package could never build on.
+> 22.12.0 renames `AvatarComponent` to `HubAvatarComponent` and
 > `AvatarService` to `HubAvatarService`; the old names stay as deprecated aliases of the same
 > classes and are removed in 23.0.0, so nothing breaks today.
 > 22.11.1 announces that `AvatarModule` and `AvatarModule.forRoot()` are

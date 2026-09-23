@@ -8,7 +8,10 @@
 
 Un componente de avatar universal para aplicaciones Angular que muestra avatares a partir de múltiples fuentes (Gravatar, GitHub, Facebook, imágenes personalizadas, iniciales o texto plano) y aplica una estrategia de reserva automática cuando una fuente falla.
 
-> **⚠️ CAMBIOS QUE ROMPEN COMPATIBILIDAD:** 22.12.0 renombra `AvatarComponent` a
+> **⚠️ CAMBIOS QUE ROMPEN COMPATIBILIDAD:** la 22.13.0 sube el suelo de Angular a la 20.2: la
+> plantilla usa un `as` en un `@else if`, que Angular no aceptó hasta entonces, así que el rango
+> anterior prometía una versión en la que esta librería nunca pudo compilar.
+> 22.12.0 renombra `AvatarComponent` a
 > `HubAvatarComponent` y `AvatarService` a `HubAvatarService`; los nombres antiguos siguen
 > exportados como alias deprecados de las mismas clases y desaparecen en la 23.0.0, así que hoy no
 > se rompe nada.
