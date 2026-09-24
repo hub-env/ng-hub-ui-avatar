@@ -8,7 +8,12 @@
 
 A universal avatar component for Angular applications that renders avatars from multiple sources (Gravatar, GitHub, Facebook, custom images, initials or plain text) and applies an automatic fallback strategy when a source fails.
 
-> **⚠️ BREAKING CHANGES:** 22.13.0 raises the Angular floor to 20.2: the template uses an `as` on an
+> **⚠️ BREAKING CHANGES:** 22.14.0 stops painting every initial white. The ink is now chosen per
+> background — black or white, whichever clears WCAG AA — so six of the eight automatic colours
+> flip to black initials, and so does projected content over a light `bgColor`. The backgrounds do
+> not move. `fgColor` loses its `'#FFF'` default, which was a sentinel the component compared
+> against literally and never a painted colour; set it explicitly and it still always wins.
+> 22.13.0 raises the Angular floor to 20.2: the template uses an `as` on an
 > `@else if`, which Angular did not accept until then, so the old range promised a version this
 > package could never build on.
 > 22.12.0 renames `AvatarComponent` to `HubAvatarComponent` and
@@ -94,7 +99,6 @@ Supported avatar sources:
 > making deliberately rather than discovering in a network tab. If you cannot send that data,
 > use the custom image, initials or text sources, which never leave your own origin.
 
-
 Fallback uses a source priority order. By default, the component tries the supported sources in their configured order until one succeeds.
 
 > This project is a fork of [ngx-avatars](https://github.com/Heatmanofurioso/ngx-avatars), which itself continued the original avatar work. This package adapts and maintains the component for modern Angular applications.
@@ -105,6 +109,7 @@ Fallback uses a source priority order. By default, the component tries the suppo
 - **Projected Custom Content**: Drop any icon (FontAwesome, Material…), inline SVG, image or emoji inside `<hub-avatar>` and it is sized, centered and padded agnostically.
 - **Automatic Fallback**: Configurable source priority order with graceful fallback when a source fails.
 - **Initials Generation**: Builds initials avatars from a name with auto-generated background colors.
+- **Readable by construction**: the initials are written in black or white, whichever clears WCAG AA against the background the avatar picked — including a palette of your own.
 - **Async Remote Sources**: Resolves remote avatars (for example Gravatar) over HTTP with caching support.
 - **Flexible Shape**: Round or square avatars with configurable corner radius and border.
 - **CSS Variables**: Full theming via canonical `--hub-avatar-*` custom properties.
@@ -184,6 +189,10 @@ bootstrapApplication(AppComponent, {
 
 `AvatarSource` enum values: `FACEBOOK`, `GRAVATAR`, `GITHUB`, `CUSTOM`, `INITIALS`, `VALUE`.
 
+> **You do not have to pick colours that carry white text.** Whatever palette you hand `colors`, each avatar writes its
+> initials in black or white — whichever reaches the WCAG AA ratio of 4.5:1 against the colour it drew. The same goes for a
+> `bgColor` set on one avatar. Set `fgColor` when you want a specific colour regardless.
+
 > Note: `facebookId` is kept as a best-effort compatibility source and may fail depending on external API/privacy restrictions.
 
 ### Examples
@@ -238,43 +247,43 @@ Project any content directly inside `<hub-avatar>` — an icon from any library,
 <hub-avatar>🚀</hub-avatar>
 ```
 
-It activates automatically whenever content is projected and takes precedence over the image/initials sources. The circle uses the avatar's own background (`--hub-avatar-bg-color`, the design-system accent by default) with a white foreground, so it reads as a coloured circle out of the box. Theme it with the regular `bgColor` / `fgColor` / `borderColor` inputs, and tune the sizing with the `--hub-avatar-content-*` tokens (see [Styling](#styling)).
+It activates automatically whenever content is projected and takes precedence over the image/initials sources. The circle uses the avatar's own background (`--hub-avatar-bg-color`, the design-system accent by default) with a white foreground, so it reads as a coloured circle out of the box. Theme it with the regular `bgColor` / `fgColor` / `borderColor` inputs — set `bgColor` and the foreground follows it, black or white, whichever reads — and tune the sizing with the `--hub-avatar-content-*` tokens (see [Styling](#styling)).
 
 ## API Reference
 
 ### Inputs
 
-| Input            | Type                            | Default     | Description                                    |
-| ---------------- | ------------------------------- | ----------- | ---------------------------------------------- |
-| `facebookId`     | `string \| null`                | `undefined` | Facebook user id                               |
-| `gravatarId`     | `string \| null`                | `undefined` | Gravatar email/hash                            |
-| `githubId`       | `string \| null`                | `undefined` | GitHub user id                                 |
-| `src`            | `string \| SafeUrl \| null`     | `undefined` | Custom image source                            |
-| `alt`            | `string \| null`                | `undefined` | Custom image alt text                          |
-| `name`           | `string \| null`                | `undefined` | Text source used to generate initials          |
-| `value`          | `string \| null`                | `undefined` | Direct text avatar value                       |
-| `size`           | `number \| string`              | `50`        | Avatar size in px                              |
-| `textSizeRatio`  | `number`                        | `3`         | Text size ratio (`size / textSizeRatio`)       |
-| `initialsSize`   | `number \| string`              | `0`         | Max initials length (`0` means no limit)       |
-| `round`          | `boolean`                       | `true`      | Enables circular shape                         |
-| `cornerRadius`   | `number \| string`              | `0`         | Radius in px when `round` is `false`           |
-| `bgColor`        | `string`                        | `undefined` | Background color override                      |
-| `autoColor`      | `boolean`                       | `true`      | Derives the initials background from a hash of `name` and applies it inline. Set to `false` to theme the avatar through `--hub-avatar-bg-color`; an explicit `bgColor` always wins. |
-| `fgColor`        | `string`                        | `#FFF`      | Foreground/text color                          |
-| `borderColor`    | `string`                        | `undefined` | Border color (applies a 1px solid border)      |
-| `style`          | `Record<string, string \| number \| null \| undefined> \| string` | `{}` | Inline styles merged into the rendered content — the image, the initials or the projected-content slot. A CSS string (`'border: 1px solid red'`) is parsed. It never reaches the host element. |
-| `placeholder`    | `string`                        | `undefined` | Picture of last resort, painted only while nothing else is: no source resolved, none declared, or one still loading, and no initials either. It is not a source and never joins the fallback chain, so it cannot outrank the initials the way `src` would. A placeholder that fails to load is dropped, not retried. The image carries `hub-avatar__placeholder` alongside `avatar-content`. |
-| `referrerpolicy` | `string \| null`                | `undefined` | Referrer policy for avatar image requests      |
-| `interactive`    | `boolean`                       | `false`     | Turns the avatar into a control: `role="button"`, focusable, and Enter/Space emit `clickOnAvatar`. Enable it whenever you bind that output. |
-| `badge`          | `string \| number \| boolean \| null` | `null` | Corner overlay. `badge` / `[badge]="true"` → a **dot**; `badge="4k"` / `[badge]="9"` → a **labelled** pill; `null` / absent → nothing. |
-| `badgeColor`     | `HubAvatarBadgeColor \| string \| null` | `null` | Semantic colour of the badge: `primary · secondary · success · danger · warning · info · light · dark` (→ `--hub-sys-color-*`). Any custom string also works (set `--hub-avatar-badge-color`). |
+| Input            | Type                                                              | Default     | Description                                                                                                                                                                                                                                                                                                                                                                                  |
+| ---------------- | ----------------------------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `facebookId`     | `string \| null`                                                  | `undefined` | Facebook user id                                                                                                                                                                                                                                                                                                                                                                             |
+| `gravatarId`     | `string \| null`                                                  | `undefined` | Gravatar email/hash                                                                                                                                                                                                                                                                                                                                                                          |
+| `githubId`       | `string \| null`                                                  | `undefined` | GitHub user id                                                                                                                                                                                                                                                                                                                                                                               |
+| `src`            | `string \| SafeUrl \| null`                                       | `undefined` | Custom image source                                                                                                                                                                                                                                                                                                                                                                          |
+| `alt`            | `string \| null`                                                  | `undefined` | Custom image alt text                                                                                                                                                                                                                                                                                                                                                                        |
+| `name`           | `string \| null`                                                  | `undefined` | Text source used to generate initials                                                                                                                                                                                                                                                                                                                                                        |
+| `value`          | `string \| null`                                                  | `undefined` | Direct text avatar value                                                                                                                                                                                                                                                                                                                                                                     |
+| `size`           | `number \| string`                                                | `50`        | Avatar size in px                                                                                                                                                                                                                                                                                                                                                                            |
+| `textSizeRatio`  | `number`                                                          | `3`         | Text size ratio (`size / textSizeRatio`)                                                                                                                                                                                                                                                                                                                                                     |
+| `initialsSize`   | `number \| string`                                                | `0`         | Max initials length (`0` means no limit)                                                                                                                                                                                                                                                                                                                                                     |
+| `round`          | `boolean`                                                         | `true`      | Enables circular shape                                                                                                                                                                                                                                                                                                                                                                       |
+| `cornerRadius`   | `number \| string`                                                | `0`         | Radius in px when `round` is `false`                                                                                                                                                                                                                                                                                                                                                         |
+| `bgColor`        | `string`                                                          | `undefined` | Background color override                                                                                                                                                                                                                                                                                                                                                                    |
+| `autoColor`      | `boolean`                                                         | `true`      | Derives the initials background from a hash of `name` and applies it inline. Set to `false` to theme the avatar through `--hub-avatar-bg-color`; an explicit `bgColor` always wins.                                                                                                                                                                                                          |
+| `fgColor`        | `string`                                                          | `undefined` | Colour of the initials (and of projected content). Left unset, the avatar writes black or white on whatever background it paints, whichever reaches WCAG AA. Set it to pin one colour: an explicit value always wins, including one that fails contrast.                                                                                                                                     |
+| `borderColor`    | `string`                                                          | `undefined` | Border color (applies a 1px solid border)                                                                                                                                                                                                                                                                                                                                                    |
+| `style`          | `Record<string, string \| number \| null \| undefined> \| string` | `{}`        | Inline styles merged into the rendered content — the image, the initials or the projected-content slot. A CSS string (`'border: 1px solid red'`) is parsed. It never reaches the host element.                                                                                                                                                                                               |
+| `placeholder`    | `string`                                                          | `undefined` | Picture of last resort, painted only while nothing else is: no source resolved, none declared, or one still loading, and no initials either. It is not a source and never joins the fallback chain, so it cannot outrank the initials the way `src` would. A placeholder that fails to load is dropped, not retried. The image carries `hub-avatar__placeholder` alongside `avatar-content`. |
+| `referrerpolicy` | `string \| null`                                                  | `undefined` | Referrer policy for avatar image requests                                                                                                                                                                                                                                                                                                                                                    |
+| `interactive`    | `boolean`                                                         | `false`     | Turns the avatar into a control: `role="button"`, focusable, and Enter/Space emit `clickOnAvatar`. Enable it whenever you bind that output.                                                                                                                                                                                                                                                  |
+| `badge`          | `string \| number \| boolean \| null`                             | `null`      | Corner overlay. `badge` / `[badge]="true"` → a **dot**; `badge="4k"` / `[badge]="9"` → a **labelled** pill; `null` / absent → nothing.                                                                                                                                                                                                                                                       |
+| `badgeColor`     | `HubAvatarBadgeColor \| string \| null`                           | `null`      | Semantic colour of the badge: `primary · secondary · success · danger · warning · info · light · dark` (→ `--hub-sys-color-*`). Any custom string also works (set `--hub-avatar-badge-color`).                                                                                                                                                                                               |
 
 `HubAvatarBadgeColor` is an exported type covering the semantic colours: `'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark'`. Express presence with the colour: online → `success`, away → `warning`, busy → `danger`, offline → `secondary`.
 
 ### Outputs
 
-| Output          | Type                               | Description                                                                             |
-| --------------- | ---------------------------------- | --------------------------------------------------------------------------------------- |
+| Output          | Type                               | Description                                                                                       |
+| --------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `clickOnAvatar` | `OutputEmitterRef<Source \| null>` | Fired on click, and on Enter/Space when `interactive` is set, with the source painting the avatar |
 
 `Source` is exported from the package, so the handler can be typed:
@@ -331,11 +340,11 @@ hub-avatar {
 
 ### Custom content
 
-When you project content into `<hub-avatar>` (see [Custom content](#custom-content-icons-svg-images)), the **background is the avatar's own** (`--hub-avatar-bg-color`, the **accent colour by default**) and the icon uses the **avatar foreground** (`--hub-avatar-fg-color`, white) — so it reads as a coloured circle out of the box. Theme it with the regular `bgColor` / `fgColor` inputs (or `--hub-avatar-bg-color` / `--hub-avatar-fg-color`) just like any other avatar. Two extra tokens control the projected content's **sizing**, both relative to `--hub-avatar-size`:
+When you project content into `<hub-avatar>` (see [Custom content](#custom-content-icons-svg-images)), the **background is the avatar's own** (`--hub-avatar-bg-color`, the **accent colour by default**) and the icon uses the **avatar foreground** (`--hub-avatar-fg-color`, white) — so it reads as a coloured circle out of the box. Theme it with the regular `bgColor` / `fgColor` inputs (or `--hub-avatar-bg-color` / `--hub-avatar-fg-color`) just like any other avatar; a `bgColor` you set carries its own readable foreground unless `fgColor` says otherwise. Two extra tokens control the projected content's **sizing**, both relative to `--hub-avatar-size`:
 
 | Token                            | Default                               | Description                                                          |
-| -------------------------------- | ------------------------------------- | ------------------------------------------------------------------- |
-| `--hub-avatar-content-padding`   | `calc(var(--hub-avatar-size) * 0.2)`  | Breathing room between the projected content and the avatar edge.   |
+| -------------------------------- | ------------------------------------- | -------------------------------------------------------------------- |
+| `--hub-avatar-content-padding`   | `calc(var(--hub-avatar-size) * 0.2)`  | Breathing room between the projected content and the avatar edge.    |
 | `--hub-avatar-content-icon-size` | `calc(var(--hub-avatar-size) * 0.55)` | Font size for icon fonts / emoji (inherited by the projected glyph). |
 
 ```scss
@@ -352,10 +361,14 @@ The `badge` input renders a corner overlay — a plain **dot** (great for presen
 
 ```html
 <!-- presence dot: badge (no content) + a semantic colour -->
-<hub-avatar name="Ada Lovelace" badge badgeColor="success"></hub-avatar>   <!-- online -->
-<hub-avatar name="Grace Hopper" badge badgeColor="warning"></hub-avatar>   <!-- away -->
-<hub-avatar name="Alan Turing" badge badgeColor="danger"></hub-avatar>     <!-- busy -->
-<hub-avatar name="Linus T" badge badgeColor="secondary"></hub-avatar>      <!-- offline -->
+<hub-avatar name="Ada Lovelace" badge badgeColor="success"></hub-avatar>
+<!-- online -->
+<hub-avatar name="Grace Hopper" badge badgeColor="warning"></hub-avatar>
+<!-- away -->
+<hub-avatar name="Alan Turing" badge badgeColor="danger"></hub-avatar>
+<!-- busy -->
+<hub-avatar name="Linus T" badge badgeColor="secondary"></hub-avatar>
+<!-- offline -->
 
 <!-- labelled badge -->
 <hub-avatar name="Carlos M" badge="4k" badgeColor="danger"></hub-avatar>
@@ -371,16 +384,16 @@ hub-avatar[data-badge-color='brand'] {
 
 Badge tokens:
 
-| Variable                          | Default                                               | Usage                                  |
-| --------------------------------- | ----------------------------------------------------- | -------------------------------------- |
-| `--hub-avatar-badge-size`         | `calc(var(--hub-avatar-size, 50px) * 0.28)`           | Dot diameter / label min-height        |
-| `--hub-avatar-badge-offset`       | `0px`                                                 | Inset from the bottom-end corner       |
-| `--hub-avatar-badge-ring-width`   | `max(2px, calc(var(--hub-avatar-size, 50px) * 0.05))` | Width of the ring around the badge     |
-| `--hub-avatar-badge-ring-color`   | `var(--hub-sys-surface-page, #fff)`                   | Colour of the ring around the badge    |
-| `--hub-avatar-badge-color`        | `var(--hub-sys-color-secondary, #6c757d)`             | Badge fill (semantic via `badgeColor`) |
-| `--hub-avatar-badge-text-color`   | `var(--hub-ref-color-white, #fff)`                    | Badge label text colour                |
-| `--hub-avatar-badge-font-size`    | `calc(var(--hub-avatar-size, 50px) * 0.22)`           | Badge label font size                  |
-| `--hub-avatar-badge-padding`      | `calc(var(--hub-avatar-size, 50px) * 0.08)`           | Badge label inline padding             |
+| Variable                        | Default                                               | Usage                                  |
+| ------------------------------- | ----------------------------------------------------- | -------------------------------------- |
+| `--hub-avatar-badge-size`       | `calc(var(--hub-avatar-size, 50px) * 0.28)`           | Dot diameter / label min-height        |
+| `--hub-avatar-badge-offset`     | `0px`                                                 | Inset from the bottom-end corner       |
+| `--hub-avatar-badge-ring-width` | `max(2px, calc(var(--hub-avatar-size, 50px) * 0.05))` | Width of the ring around the badge     |
+| `--hub-avatar-badge-ring-color` | `var(--hub-sys-surface-page, #fff)`                   | Colour of the ring around the badge    |
+| `--hub-avatar-badge-color`      | `var(--hub-sys-color-secondary, #6c757d)`             | Badge fill (semantic via `badgeColor`) |
+| `--hub-avatar-badge-text-color` | `var(--hub-ref-color-white, #fff)`                    | Badge label text colour                |
+| `--hub-avatar-badge-font-size`  | `calc(var(--hub-avatar-size, 50px) * 0.22)`           | Badge label font size                  |
+| `--hub-avatar-badge-padding`    | `calc(var(--hub-avatar-size, 50px) * 0.08)`           | Badge label inline padding             |
 
 ### Colour variants & mixins
 
@@ -393,10 +406,12 @@ Every semantic colour works out of the box, both for the badge (`badgeColor="suc
 @include avatar.hub-avatar-color-variants();
 
 // add your own — generates <hub-avatar class="hub-avatar--brand"> and badgeColor="brand"
-@include avatar.hub-avatar-color-variants((
-	'brand': var(--my-brand),
-	'accent': #00d4aa
-));
+@include avatar.hub-avatar-color-variants(
+	(
+		'brand': var(--my-brand),
+		'accent': #00d4aa
+	)
+);
 ```
 
 ### Avatar group
@@ -413,11 +428,11 @@ Wrap several `<hub-avatar>` in a `.hub-avatar-group` to overlap them into a stac
 
 Group tokens:
 
-| Variable                       | Default                                                  | Usage                              |
-| ------------------------------ | -------------------------------------------------------- | ---------------------------------- |
-| `--hub-avatar-group-overlap`   | `calc(var(--hub-avatar-size, 50px) * 0.3)`              | Horizontal overlap between avatars |
-| `--hub-avatar-group-ring-width`| `max(2px, calc(var(--hub-avatar-size, 50px) * 0.04))`   | Ring width around each avatar      |
-| `--hub-avatar-group-ring-color`| `var(--hub-sys-surface-page, #fff)`                     | Ring colour around each avatar     |
+| Variable                        | Default                                               | Usage                              |
+| ------------------------------- | ----------------------------------------------------- | ---------------------------------- |
+| `--hub-avatar-group-overlap`    | `calc(var(--hub-avatar-size, 50px) * 0.3)`            | Horizontal overlap between avatars |
+| `--hub-avatar-group-ring-width` | `max(2px, calc(var(--hub-avatar-size, 50px) * 0.04))` | Ring width around each avatar      |
+| `--hub-avatar-group-ring-color` | `var(--hub-sys-surface-page, #fff)`                   | Ring colour around each avatar     |
 
 ### Sass theming mixin
 
@@ -427,13 +442,7 @@ The `hub-avatar-theme()` mixin themes an avatar in a single include — shape/su
 @use 'ng-hub-ui-avatar/styles/mixins/avatar-theme' as avatar;
 
 hub-avatar.brand {
-	@include avatar.hub-avatar-theme(
-		$size: 64px,
-		$border-radius: 1rem,
-		$bg: #ede9fe,
-		$fg: #5b21b6,
-		$badge-color: #f43f5e
-	);
+	@include avatar.hub-avatar-theme($size: 64px, $border-radius: 1rem, $bg: #ede9fe, $fg: #5b21b6, $badge-color: #f43f5e);
 }
 ```
 

@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [22.14.0] - 2026-09-23
+
+### Fixed
+
+- **BREAKING — an initials avatar picks its own ink, so its text clears WCAG AA.** Six of the
+  eight automatic backgrounds could not carry the white initials they were given: `#f1c40f`
+  scored 1.66:1, `#1abc9c` 2.41:1, `#3498db` 3.15:1, `#7f8c8d` 3.48:1, `#e74c3c` 3.82:1 and
+  `#d35400` 4.17:1, against the 4.5:1 AA asks of body text. The avatar now measures the colour
+  it is about to paint and writes black or white on it, whichever reads: the same eight
+  backgrounds now score 12.64, 8.72, 6.66, 6.04, 5.50 and 5.04:1, and the two that already
+  passed — `#8e44ad` at 5.87:1 and `#2c3e50` at 10.98:1 — keep their white initials unchanged.
+  **Six of the eight avatars change colour**; see `BREAKING_CHANGES.md`.
+- **The palette itself is untouched**, and the fix is not a list of eight approved pairings. The
+  ink is derived from whatever colour ends up behind the text, so a palette supplied through
+  `provideAvatar({ colors })` and an explicit `bgColor` get the same guarantee — including
+  colours this library has never seen.
+- **The same correction reaches projected content.** An icon or SVG dropped into
+  `<hub-avatar bgColor="…">` took the white foreground regardless of the fill it sat on.
+
+### Changed
+
+- **BREAKING — `fgColor` has no default.** It was declared as `'#FFF'` and compared against that
+  exact string to decide whether the consumer had set anything, so `fgColor="#FFF"` was read as
+  "unset" while `fgColor="#fff"` was read as "set" — and the documented default described a
+  colour the component never actually emitted. It is now `string | undefined`: unset means the
+  avatar picks the ink, and any value set — including one that fails contrast — is painted as
+  asked. See `BREAKING_CHANGES.md`.
+
+### Added
+
+- A suite that renders an avatar for every slot of the palette, reads the two colours actually
+  painted and fails below 4.5:1 — for the built-in palette and for one supplied through
+  `AVATAR_CONFIG`, so a regression cannot hide behind a list of pinned colours.
+
 ## [22.13.0] - 2026-09-23
 
 ### Changed

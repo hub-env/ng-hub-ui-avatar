@@ -8,7 +8,13 @@
 
 Un componente de avatar universal para aplicaciones Angular que muestra avatares a partir de múltiples fuentes (Gravatar, GitHub, Facebook, imágenes personalizadas, iniciales o texto plano) y aplica una estrategia de reserva automática cuando una fuente falla.
 
-> **⚠️ CAMBIOS QUE ROMPEN COMPATIBILIDAD:** la 22.13.0 sube el suelo de Angular a la 20.2: la
+> **⚠️ CAMBIOS QUE ROMPEN COMPATIBILIDAD:** la 22.14.0 deja de pintar todas las iniciales en
+> blanco. La tinta se elige ahora según el fondo —negra o blanca, la que llegue al mínimo de
+> contraste de la WCAG—, así que seis de los ocho colores automáticos pasan a iniciales negras, y
+> con ellos el contenido proyectado sobre un `bgColor` claro. Los fondos no se mueven. `fgColor`
+> pierde su valor por defecto `'#FFF'`, que era un centinela con el que el componente comparaba
+> literalmente y nunca un color pintado; si se indica, sigue mandando siempre.
+> La 22.13.0 sube el suelo de Angular a la 20.2: la
 > plantilla usa un `as` en un `@else if`, que Angular no aceptó hasta entonces, así que el rango
 > anterior prometía una versión en la que esta librería nunca pudo compilar.
 > 22.12.0 renombra `AvatarComponent` a
@@ -97,7 +103,6 @@ Fuentes de avatar soportadas:
 > y no descubrirlo en la pestaña de red. Si no puedes enviar esos datos, usa las fuentes de
 > imagen propia, iniciales o texto, que no salen de tu propio origen.
 
-
 La reserva utiliza un orden de prioridad de fuentes. Por defecto, el componente prueba las fuentes soportadas en el orden configurado hasta que una tiene éxito.
 
 > Este proyecto es un fork de [ngx-avatars](https://github.com/Heatmanofurioso/ngx-avatars), que a su vez continuó el trabajo original de avatar. Este paquete adapta y mantiene el componente para aplicaciones Angular modernas.
@@ -108,6 +113,7 @@ La reserva utiliza un orden de prioridad de fuentes. Por defecto, el componente 
 - **Contenido personalizado proyectado**: coloca cualquier icono (FontAwesome, Material…), un SVG en línea, una imagen o un emoji dentro de `<hub-avatar>` y se dimensiona, centra y espacia de forma agnóstica.
 - **Reserva automática**: orden de prioridad de fuentes configurable con reserva elegante cuando una fuente falla.
 - **Generación de iniciales**: crea avatares de iniciales a partir de un nombre con colores de fondo autogenerados.
+- **Legible por construcción**: las iniciales se escriben en negro o en blanco, el que llegue al contraste AA de la WCAG sobre el fondo que eligió el avatar — también con una paleta propia.
 - **Fuentes remotas asíncronas**: resuelve avatares remotos (por ejemplo Gravatar) por HTTP con soporte de caché.
 - **Forma flexible**: avatares redondos o cuadrados con radio de esquina y borde configurables.
 - **Variables CSS**: tematización completa mediante las propiedades personalizadas canónicas `--hub-avatar-*`.
@@ -187,6 +193,10 @@ Campos de `AvatarConfig`:
 
 Valores del enum `AvatarSource`: `FACEBOOK`, `GRAVATAR`, `GITHUB`, `CUSTOM`, `INITIALS`, `VALUE`.
 
+> **No hace falta elegir colores que aguanten texto blanco.** Sea cual sea la paleta que pases a `colors`, cada avatar
+> escribe sus iniciales en negro o en blanco — el que llegue al 4,5:1 que pide la WCAG en nivel AA sobre el color que le
+> tocó. Lo mismo vale para un `bgColor` puesto en un avatar concreto. Usa `fgColor` cuando quieras un color pase lo que pase.
+
 > Nota: `facebookId` se mantiene como fuente de compatibilidad de mejor esfuerzo y puede fallar según las restricciones de la API externa o de privacidad.
 
 ### Ejemplos
@@ -241,43 +251,43 @@ Proyecta cualquier contenido directamente dentro de `<hub-avatar>` — un icono 
 <hub-avatar>🚀</hub-avatar>
 ```
 
-Se activa automáticamente cuando proyectas contenido y tiene prioridad sobre las fuentes de imagen/iniciales. El círculo usa el fondo propio del avatar (`--hub-avatar-bg-color`, el color de acento por defecto) con un primer plano blanco, así que se ve como un círculo de color sin configurar nada. Tematízalo con los inputs habituales `bgColor` / `fgColor` / `borderColor`, y ajusta el tamaño con los tokens `--hub-avatar-content-*` (ver [Estilos](#estilos)).
+Se activa automáticamente cuando proyectas contenido y tiene prioridad sobre las fuentes de imagen/iniciales. El círculo usa el fondo propio del avatar (`--hub-avatar-bg-color`, el color de acento por defecto) con un primer plano blanco, así que se ve como un círculo de color sin configurar nada. Tematízalo con los inputs habituales `bgColor` / `fgColor` / `borderColor` — si pones `bgColor`, el primer plano lo sigue, en negro o en blanco, el que se lea — y ajusta el tamaño con los tokens `--hub-avatar-content-*` (ver [Estilos](#estilos)).
 
 ## Referencia de la API
 
 ### Inputs
 
-| Input            | Tipo                            | Por defecto | Descripción                                       |
-| ---------------- | ------------------------------- | ----------- | ------------------------------------------------- |
-| `facebookId`     | `string \| null`                | `undefined` | Id de usuario de Facebook                         |
-| `gravatarId`     | `string \| null`                | `undefined` | Email/hash de Gravatar                            |
-| `githubId`       | `string \| null`                | `undefined` | Id de usuario de GitHub                           |
-| `src`            | `string \| SafeUrl \| null`     | `undefined` | Fuente de imagen personalizada                    |
-| `alt`            | `string \| null`                | `undefined` | Texto alternativo de la imagen personalizada      |
-| `name`           | `string \| null`                | `undefined` | Texto usado para generar las iniciales            |
-| `value`          | `string \| null`                | `undefined` | Valor de avatar de texto directo                  |
-| `size`           | `number \| string`              | `50`        | Tamaño del avatar en px                           |
-| `textSizeRatio`  | `number`                        | `3`         | Ratio del tamaño de texto (`size / textSizeRatio`) |
-| `initialsSize`   | `number \| string`              | `0`         | Longitud máxima de iniciales (`0` sin límite)     |
-| `round`          | `boolean`                       | `true`      | Activa la forma circular                          |
-| `cornerRadius`   | `number \| string`              | `0`         | Radio en px cuando `round` es `false`             |
-| `bgColor`        | `string`                        | `undefined` | Color de fondo personalizado                      |
-| `autoColor`      | `boolean`                       | `true`      | Deriva el fondo de las iniciales de un hash de `name` y lo aplica en línea. Ponlo a `false` para tematizar el avatar con `--hub-avatar-bg-color`; un `bgColor` explícito siempre gana. |
-| `fgColor`        | `string`                        | `#FFF`      | Color de primer plano/texto                       |
-| `borderColor`    | `string`                        | `undefined` | Color de borde (aplica un borde sólido de 1px)    |
-| `style`          | `Record<string, string \| number \| null \| undefined> \| string` | `{}` | Estilos en línea combinados con el contenido renderizado — la imagen, las iniciales o el hueco del contenido proyectado. Una cadena CSS (`'border: 1px solid red'`) se parsea. Nunca llega al elemento anfitrión. |
-| `placeholder`    | `string`                        | `undefined` | Imagen de último recurso, que se pinta solo mientras no hay nada más: ninguna fuente resuelta, ninguna declarada o una todavía cargando, y tampoco iniciales. No es una fuente ni entra en la cadena de reserva, así que no puede adelantar a las iniciales como sí haría `src`. Un placeholder que falle al cargar se descarta, no se reintenta. La imagen lleva `hub-avatar__placeholder` junto a `avatar-content`. |
-| `referrerpolicy` | `string \| null`                | `undefined` | Política de referrer para las peticiones de imagen |
-| `interactive`    | `boolean`                       | `false`     | Convierte el avatar en un control: `role="button"`, enfocable y con Enter/Espacio emitiendo `clickOnAvatar`. Actívalo siempre que enlaces ese output. |
-| `badge`          | `string \| number \| boolean \| null` | `null` | Superposición en la esquina. `badge` / `[badge]="true"` → **punto**; `badge="4k"` / `[badge]="9"` → **etiqueta** (pill); `null` / ausente → nada. |
-| `badgeColor`     | `HubAvatarBadgeColor \| string \| null` | `null` | Color **semántico** del badge: `primary · secondary · success · danger · warning · info · light · dark` (→ `--hub-sys-color-*`). También acepta cualquier cadena (usa `--hub-avatar-badge-color`). |
+| Input            | Tipo                                                              | Por defecto | Descripción                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ---------------- | ----------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `facebookId`     | `string \| null`                                                  | `undefined` | Id de usuario de Facebook                                                                                                                                                                                                                                                                                                                                                                                             |
+| `gravatarId`     | `string \| null`                                                  | `undefined` | Email/hash de Gravatar                                                                                                                                                                                                                                                                                                                                                                                                |
+| `githubId`       | `string \| null`                                                  | `undefined` | Id de usuario de GitHub                                                                                                                                                                                                                                                                                                                                                                                               |
+| `src`            | `string \| SafeUrl \| null`                                       | `undefined` | Fuente de imagen personalizada                                                                                                                                                                                                                                                                                                                                                                                        |
+| `alt`            | `string \| null`                                                  | `undefined` | Texto alternativo de la imagen personalizada                                                                                                                                                                                                                                                                                                                                                                          |
+| `name`           | `string \| null`                                                  | `undefined` | Texto usado para generar las iniciales                                                                                                                                                                                                                                                                                                                                                                                |
+| `value`          | `string \| null`                                                  | `undefined` | Valor de avatar de texto directo                                                                                                                                                                                                                                                                                                                                                                                      |
+| `size`           | `number \| string`                                                | `50`        | Tamaño del avatar en px                                                                                                                                                                                                                                                                                                                                                                                               |
+| `textSizeRatio`  | `number`                                                          | `3`         | Ratio del tamaño de texto (`size / textSizeRatio`)                                                                                                                                                                                                                                                                                                                                                                    |
+| `initialsSize`   | `number \| string`                                                | `0`         | Longitud máxima de iniciales (`0` sin límite)                                                                                                                                                                                                                                                                                                                                                                         |
+| `round`          | `boolean`                                                         | `true`      | Activa la forma circular                                                                                                                                                                                                                                                                                                                                                                                              |
+| `cornerRadius`   | `number \| string`                                                | `0`         | Radio en px cuando `round` es `false`                                                                                                                                                                                                                                                                                                                                                                                 |
+| `bgColor`        | `string`                                                          | `undefined` | Color de fondo personalizado                                                                                                                                                                                                                                                                                                                                                                                          |
+| `autoColor`      | `boolean`                                                         | `true`      | Deriva el fondo de las iniciales de un hash de `name` y lo aplica en línea. Ponlo a `false` para tematizar el avatar con `--hub-avatar-bg-color`; un `bgColor` explícito siempre gana.                                                                                                                                                                                                                                |
+| `fgColor`        | `string`                                                          | `undefined` | Color de las iniciales (y del contenido proyectado). Si no lo pones, el avatar escribe en negro o en blanco sobre el fondo que pinte, el que llegue al contraste AA de la WCAG. Pon un valor para fijar un color: lo explícito siempre gana, aunque no llegue al contraste.                                                                                                                                           |
+| `borderColor`    | `string`                                                          | `undefined` | Color de borde (aplica un borde sólido de 1px)                                                                                                                                                                                                                                                                                                                                                                        |
+| `style`          | `Record<string, string \| number \| null \| undefined> \| string` | `{}`        | Estilos en línea combinados con el contenido renderizado — la imagen, las iniciales o el hueco del contenido proyectado. Una cadena CSS (`'border: 1px solid red'`) se parsea. Nunca llega al elemento anfitrión.                                                                                                                                                                                                     |
+| `placeholder`    | `string`                                                          | `undefined` | Imagen de último recurso, que se pinta solo mientras no hay nada más: ninguna fuente resuelta, ninguna declarada o una todavía cargando, y tampoco iniciales. No es una fuente ni entra en la cadena de reserva, así que no puede adelantar a las iniciales como sí haría `src`. Un placeholder que falle al cargar se descarta, no se reintenta. La imagen lleva `hub-avatar__placeholder` junto a `avatar-content`. |
+| `referrerpolicy` | `string \| null`                                                  | `undefined` | Política de referrer para las peticiones de imagen                                                                                                                                                                                                                                                                                                                                                                    |
+| `interactive`    | `boolean`                                                         | `false`     | Convierte el avatar en un control: `role="button"`, enfocable y con Enter/Espacio emitiendo `clickOnAvatar`. Actívalo siempre que enlaces ese output.                                                                                                                                                                                                                                                                 |
+| `badge`          | `string \| number \| boolean \| null`                             | `null`      | Superposición en la esquina. `badge` / `[badge]="true"` → **punto**; `badge="4k"` / `[badge]="9"` → **etiqueta** (pill); `null` / ausente → nada.                                                                                                                                                                                                                                                                     |
+| `badgeColor`     | `HubAvatarBadgeColor \| string \| null`                           | `null`      | Color **semántico** del badge: `primary · secondary · success · danger · warning · info · light · dark` (→ `--hub-sys-color-*`). También acepta cualquier cadena (usa `--hub-avatar-badge-color`).                                                                                                                                                                                                                    |
 
 `HubAvatarBadgeColor` es un tipo exportado con los colores semánticos: `'primary' | 'secondary' | 'success' | 'danger' | 'warning' | 'info' | 'light' | 'dark'`. La presencia se expresa con el color: online → `success`, away → `warning`, busy → `danger`, offline → `secondary`.
 
 ### Outputs
 
-| Output          | Tipo                               | Descripción                                                                                          |
-| --------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Output          | Tipo                               | Descripción                                                                                                     |
+| --------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `clickOnAvatar` | `OutputEmitterRef<Source \| null>` | Se emite al hacer clic, y con Enter/Espacio cuando `interactive` está activo, con la fuente que pinta el avatar |
 
 `Source` se exporta desde el paquete, así que el manejador se puede tipar:
@@ -334,7 +344,7 @@ hub-avatar {
 
 ### Contenido personalizado
 
-Cuando proyectas contenido dentro de `<hub-avatar>` (ver [Contenido personalizado](#contenido-personalizado-iconos-svg-im%C3%A1genes)), el **fondo es el del propio avatar** (`--hub-avatar-bg-color`, el **color de acento por defecto**) y el icono usa el **primer plano del avatar** (`--hub-avatar-fg-color`, blanco) — así que se ve como un círculo de color sin configurar nada. Tematízalo con los inputs habituales `bgColor` / `fgColor` (o `--hub-avatar-bg-color` / `--hub-avatar-fg-color`) como cualquier otro avatar. Dos tokens extra controlan el **tamaño** del contenido proyectado, ambos relativos a `--hub-avatar-size`:
+Cuando proyectas contenido dentro de `<hub-avatar>` (ver [Contenido personalizado](#contenido-personalizado-iconos-svg-im%C3%A1genes)), el **fondo es el del propio avatar** (`--hub-avatar-bg-color`, el **color de acento por defecto**) y el icono usa el **primer plano del avatar** (`--hub-avatar-fg-color`, blanco) — así que se ve como un círculo de color sin configurar nada. Tematízalo con los inputs habituales `bgColor` / `fgColor` (o `--hub-avatar-bg-color` / `--hub-avatar-fg-color`) como cualquier otro avatar; un `bgColor` que pongas lleva su propio primer plano legible salvo que `fgColor` diga otra cosa. Dos tokens extra controlan el **tamaño** del contenido proyectado, ambos relativos a `--hub-avatar-size`:
 
 | Token                            | Por defecto                           | Descripción                                                          |
 | -------------------------------- | ------------------------------------- | -------------------------------------------------------------------- |
@@ -355,10 +365,14 @@ El input `badge` muestra una superposición en la esquina — un **punto** (idea
 
 ```html
 <!-- punto de presencia: badge (sin contenido) + color semántico -->
-<hub-avatar name="Ada Lovelace" badge badgeColor="success"></hub-avatar>   <!-- online -->
-<hub-avatar name="Grace Hopper" badge badgeColor="warning"></hub-avatar>   <!-- away -->
-<hub-avatar name="Alan Turing" badge badgeColor="danger"></hub-avatar>     <!-- busy -->
-<hub-avatar name="Linus T" badge badgeColor="secondary"></hub-avatar>      <!-- offline -->
+<hub-avatar name="Ada Lovelace" badge badgeColor="success"></hub-avatar>
+<!-- online -->
+<hub-avatar name="Grace Hopper" badge badgeColor="warning"></hub-avatar>
+<!-- away -->
+<hub-avatar name="Alan Turing" badge badgeColor="danger"></hub-avatar>
+<!-- busy -->
+<hub-avatar name="Linus T" badge badgeColor="secondary"></hub-avatar>
+<!-- offline -->
 
 <!-- badge con etiqueta -->
 <hub-avatar name="Carlos M" badge="4k" badgeColor="danger"></hub-avatar>
@@ -374,16 +388,16 @@ hub-avatar[data-badge-color='brand'] {
 
 Tokens del badge:
 
-| Variable                          | Por defecto                                           | Uso                                    |
-| --------------------------------- | ----------------------------------------------------- | -------------------------------------- |
-| `--hub-avatar-badge-size`         | `calc(var(--hub-avatar-size, 50px) * 0.28)`           | Diámetro del punto / alto mín. etiqueta |
-| `--hub-avatar-badge-offset`       | `0px`                                                 | Separación respecto a la esquina       |
-| `--hub-avatar-badge-ring-width`   | `max(2px, calc(var(--hub-avatar-size, 50px) * 0.05))` | Ancho del anillo del badge             |
-| `--hub-avatar-badge-ring-color`   | `var(--hub-sys-surface-page, #fff)`                   | Color del anillo del badge             |
-| `--hub-avatar-badge-color`        | `var(--hub-sys-color-secondary, #6c757d)`             | Relleno del badge (semántico por `badgeColor`) |
-| `--hub-avatar-badge-text-color`   | `var(--hub-ref-color-white, #fff)`                    | Color del texto de la etiqueta         |
-| `--hub-avatar-badge-font-size`    | `calc(var(--hub-avatar-size, 50px) * 0.22)`           | Tamaño de fuente de la etiqueta        |
-| `--hub-avatar-badge-padding`      | `calc(var(--hub-avatar-size, 50px) * 0.08)`           | Padding horizontal de la etiqueta      |
+| Variable                        | Por defecto                                           | Uso                                            |
+| ------------------------------- | ----------------------------------------------------- | ---------------------------------------------- |
+| `--hub-avatar-badge-size`       | `calc(var(--hub-avatar-size, 50px) * 0.28)`           | Diámetro del punto / alto mín. etiqueta        |
+| `--hub-avatar-badge-offset`     | `0px`                                                 | Separación respecto a la esquina               |
+| `--hub-avatar-badge-ring-width` | `max(2px, calc(var(--hub-avatar-size, 50px) * 0.05))` | Ancho del anillo del badge                     |
+| `--hub-avatar-badge-ring-color` | `var(--hub-sys-surface-page, #fff)`                   | Color del anillo del badge                     |
+| `--hub-avatar-badge-color`      | `var(--hub-sys-color-secondary, #6c757d)`             | Relleno del badge (semántico por `badgeColor`) |
+| `--hub-avatar-badge-text-color` | `var(--hub-ref-color-white, #fff)`                    | Color del texto de la etiqueta                 |
+| `--hub-avatar-badge-font-size`  | `calc(var(--hub-avatar-size, 50px) * 0.22)`           | Tamaño de fuente de la etiqueta                |
+| `--hub-avatar-badge-padding`    | `calc(var(--hub-avatar-size, 50px) * 0.08)`           | Padding horizontal de la etiqueta              |
 
 ### Variantes de color & mixins
 
@@ -396,10 +410,12 @@ Cada color semántico funciona de fábrica, tanto para el badge (`badgeColor="su
 @include avatar.hub-avatar-color-variants();
 
 // añade los tuyos — genera <hub-avatar class="hub-avatar--brand"> y badgeColor="brand"
-@include avatar.hub-avatar-color-variants((
-	'brand': var(--my-brand),
-	'accent': #00d4aa
-));
+@include avatar.hub-avatar-color-variants(
+	(
+		'brand': var(--my-brand),
+		'accent': #00d4aa
+	)
+);
 ```
 
 ### Grupo de avatares
@@ -416,11 +432,11 @@ Envuelve varios `<hub-avatar>` en un `.hub-avatar-group` para superponerlos en u
 
 Tokens de grupo:
 
-| Variable                       | Por defecto                                              | Uso                                  |
-| ------------------------------ | -------------------------------------------------------- | ------------------------------------ |
-| `--hub-avatar-group-overlap`   | `calc(var(--hub-avatar-size, 50px) * 0.3)`              | Superposición horizontal entre avatares |
-| `--hub-avatar-group-ring-width`| `max(2px, calc(var(--hub-avatar-size, 50px) * 0.04))`   | Ancho del anillo de cada avatar      |
-| `--hub-avatar-group-ring-color`| `var(--hub-sys-surface-page, #fff)`                     | Color del anillo de cada avatar      |
+| Variable                        | Por defecto                                           | Uso                                     |
+| ------------------------------- | ----------------------------------------------------- | --------------------------------------- |
+| `--hub-avatar-group-overlap`    | `calc(var(--hub-avatar-size, 50px) * 0.3)`            | Superposición horizontal entre avatares |
+| `--hub-avatar-group-ring-width` | `max(2px, calc(var(--hub-avatar-size, 50px) * 0.04))` | Ancho del anillo de cada avatar         |
+| `--hub-avatar-group-ring-color` | `var(--hub-sys-surface-page, #fff)`                   | Color del anillo de cada avatar         |
 
 ### Mixin de tematización Sass
 
@@ -430,13 +446,7 @@ El mixin `hub-avatar-theme()` tematiza un avatar en una sola llamada — forma/s
 @use 'ng-hub-ui-avatar/styles/mixins/avatar-theme' as avatar;
 
 hub-avatar.brand {
-	@include avatar.hub-avatar-theme(
-		$size: 64px,
-		$border-radius: 1rem,
-		$bg: #ede9fe,
-		$fg: #5b21b6,
-		$badge-color: #f43f5e
-	);
+	@include avatar.hub-avatar-theme($size: 64px, $border-radius: 1rem, $bg: #ede9fe, $fg: #5b21b6, $badge-color: #f43f5e);
 }
 ```
 

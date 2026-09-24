@@ -19,6 +19,7 @@ import {
 
 import { DomSanitizer, SafeUrl, SafeValue } from '@angular/platform-browser';
 import { map, takeWhile } from 'rxjs/operators';
+import { readableAvatarInk } from './avatar-ink';
 import { HubAvatarService } from './avatar.service';
 import { AsyncSource } from './sources/async-source';
 import { AvatarSource } from './sources/avatar-source.enum';
@@ -124,7 +125,14 @@ export class HubAvatarComponent implements AfterContentInit, OnDestroy {
 	readonly interactive = input(false, { transform: booleanAttribute });
 	readonly textSizeRatio = input(3);
 	readonly bgColor = input<string>();
-	readonly fgColor = input('#FFF');
+	/**
+	 * Colour of the initials (and of projected content). Leave it unset and the avatar picks
+	 * black or white per background, whichever reads — see {@link readableAvatarInk}. Set it
+	 * to pin one colour: an explicit value always wins, including one that fails contrast,
+	 * because a brand that insists on white initials is a decision this component does not get
+	 * to overrule.
+	 */
+	readonly fgColor = input<string>();
 	readonly borderColor = input<string>();
 	/**
 	 * When `true` (default) an initials avatar gets a background colour derived from
@@ -407,13 +415,30 @@ export class HubAvatarComponent implements AfterContentInit, OnDestroy {
 	private getCustomContentStyle(): StyleObject {
 		const borderColor = this.borderColor();
 		const bgColor = this.bgColor();
-		const hasCustomFgColor = this.fgColor() !== '#FFF';
 		return {
 			backgroundColor: bgColor ? bgColor : undefined,
-			color: hasCustomFgColor ? this.fgColor() : undefined,
+			color: this.inkFor(bgColor),
 			border: borderColor ? '1px solid ' + borderColor : undefined,
 			...this.getCustomStyleObject()
 		};
+	}
+
+	/**
+	 * The colour to write on `background`, for whichever of the two slots is painting.
+	 *
+	 * An explicit `fgColor` wins outright. Failing that, the ink is derived from the colour
+	 * the avatar is about to paint inline — which is the only moment it is known, since a
+	 * hashed background is chosen per name and a `bgColor` is chosen per consumer. Returns
+	 * `undefined` when there is no inline background, or when it cannot be measured, so the
+	 * stylesheet's `--hub-avatar-fg-color` keeps the decision and token theming still works.
+	 */
+	private inkFor(background: string | undefined): string | undefined {
+		const explicit = this.fgColor();
+		if (explicit) {
+			return explicit;
+		}
+
+		return (background ? readableAvatarInk(background) : null) ?? undefined;
 	}
 
 	/**
@@ -486,18 +511,18 @@ export class HubAvatarComponent implements AfterContentInit, OnDestroy {
 		const borderColor = this.borderColor();
 		const bgColor = this.bgColor();
 		const hasCornerRadius = !this.round() || +this.cornerRadius() > 0;
-		const hasCustomFgColor = this.fgColor() !== '#FFF';
+		// Explicit `bgColor` wins; otherwise the hash colour is applied inline only
+		// while `autoColor` is on. With `[autoColor]="false"` no inline background is
+		// emitted, so `.avatar-content { background-color: var(--hub-avatar-bg-color, …) }`
+		// takes over and the consumer can theme the avatar through the token.
+		const background = bgColor ? bgColor : this.autoColor() ? this.avatarService.getRandomColor(avatarValue) : undefined;
 		return {
 			textAlign: 'center',
 			borderRadius: hasCornerRadius ? (this.round() ? '100%' : this.cornerRadius() + 'px') : undefined,
 			border: borderColor ? '1px solid ' + borderColor : undefined,
 			textTransform: 'uppercase',
-			color: hasCustomFgColor ? this.fgColor() : undefined,
-			// Explicit `bgColor` wins; otherwise the hash colour is applied inline only
-			// while `autoColor` is on. With `[autoColor]="false"` no inline background is
-			// emitted, so `.avatar-content { background-color: var(--hub-avatar-bg-color, …) }`
-			// takes over and the consumer can theme the avatar through the token.
-			backgroundColor: bgColor ? bgColor : this.autoColor() ? this.avatarService.getRandomColor(avatarValue) : undefined,
+			color: this.inkFor(background),
+			backgroundColor: background,
 			// Only the size is set inline (it scales with `size`); the family comes from
 			// `.avatar-content { font-family: var(--hub-avatar-font-family, …) }` so the
 			// initials honour the same token as the rest of the avatar (a `font` shorthand

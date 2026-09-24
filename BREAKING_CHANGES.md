@@ -2,6 +2,61 @@
 
 This document details the breaking changes introduced in major versions of `ng-hub-ui-avatar` and how to migrate your codebase.
 
+## [22.14.0] - 2026-09-23
+
+### Initials are no longer always white
+
+- **Change**: an avatar that paints its own background — the hash colour from `name`, or an
+  explicit `bgColor` — now writes its initials in black or white, whichever reaches the WCAG AA
+  contrast of 4.5:1 against that background. The same applies to content projected into an
+  avatar with a `bgColor`.
+
+- **Why**: white initials did not read on most of the palette. Measured against white, six of
+  the eight built-in backgrounds missed AA — `#f1c40f` 1.66:1, `#1abc9c` 2.41:1, `#3498db`
+  3.15:1, `#7f8c8d` 3.48:1, `#e74c3c` 3.82:1, `#d35400` 4.17:1 — and they come up with ordinary
+  names, so any application with a list of people had several of them on screen.
+
+- **Impact — six of the eight automatic colours change appearance.** These flip from white to
+  black initials: `#1abc9c`, `#3498db`, `#f1c40f`, `#e74c3c`, `#d35400`, `#7f8c8d`. These two
+  are unchanged: `#8e44ad` and `#2c3e50`. The backgrounds themselves do not move, so the
+  palette still looks like itself; only the text on top of it does. An avatar with no inline
+  background — `[autoColor]="false"`, or one themed through `--hub-avatar-bg-color` — is
+  untouched, and so is every image avatar.
+
+- **What happens if you do nothing**: your avatars become readable, and some of them look
+  different in a screenshot test. Nothing throws and nothing stops compiling.
+
+- **Migration**: none is needed. To pin the old look on a given avatar, say so — an explicit
+  `fgColor` always wins, contrast or no contrast:
+
+    ```html
+    <!-- Before 22.14.0: white initials, whatever the background -->
+    <hub-avatar [name]="user.fullName" />
+
+    <!-- After 22.14.0: white initials, because you asked for them -->
+    <hub-avatar [name]="user.fullName" fgColor="#fff" />
+    ```
+
+    To pin it everywhere at once, hand `provideAvatar()` a palette whose colours all carry
+    white text; the ink follows the background it is given.
+
+### `fgColor` has no default value
+
+- **Change**: `fgColor` is `InputSignal<string | undefined>` instead of `InputSignal<string>`,
+  and its documented default of `'#FFF'` is gone.
+
+- **Why**: the default was a sentinel, not a colour. The component compared `fgColor()` against
+  the literal `'#FFF'` to work out whether the consumer had set anything, which made
+  `fgColor="#FFF"` mean "unset" and `fgColor="#fff"` mean "set" — the same colour, two
+  behaviours. And no avatar ever painted `#FFF`: with `fgColor` untouched the component emitted
+  no colour at all and left it to `--hub-avatar-fg-color`. Now the ink is a real decision, the
+  input has to be able to say "the consumer chose this" without guessing.
+
+- **Impact**: only for code that reads the input's value. A template binding `[fgColor]="…"` or
+  an attribute `fgColor="#fff"` behaves as before, except that `fgColor="#FFF"` is now honoured
+  literally instead of being silently ignored — which is what it always looked like it did.
+  TypeScript that reads `avatar.fgColor()` now gets `string | undefined`.
+
 ## [22.13.0] - 2026-09-23
 
 ### Angular below 20.2.0 is no longer supported
