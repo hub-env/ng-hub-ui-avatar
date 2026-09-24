@@ -2,6 +2,43 @@
 
 All notable changes to this project will be documented in this file.
 
+## [22.15.0] - 2026-09-24
+
+### Fixed
+
+- **BREAKING — a `size` that carries units is painted as written.** The size was composed by
+  appending `px` to whatever the input held, so `size="1.75rem"` became `1.75rempx`, which the
+  browser drops without a word: the box lost its width and height, the initials lost their line
+  height, and the avatar disappeared with nothing in the console to say why. `--hub-avatar-size`
+  did not disappear — it was worse, `parseFloat` turned `1.75rem` into `1.75px` — so the badge
+  and the group overlap that scale from it collapsed too. Any CSS length now reaches CSS intact:
+  `1.75rem`, `50%`, `calc(2rem + 12px)`, `var(--profile-avatar-size)`.
+- **A bare number is still pixels**, string or not, so `[size]="64"` and `size="64"` are
+  unchanged — that is what every consumer, demo and doc relies on.
+- **A size CSS could not paint falls back to the default 50px** instead of being written through
+  into an inline style the browser discards. An avatar with a typo in its size is now the wrong
+  size; it used to be no size at all.
+- **The initials scale from the size whatever its unit.** Their font size was
+  `Math.floor(size / textSizeRatio)`, which is `NaN` for a relative length; a length that is not
+  pixels is divided by `calc()` instead, once the browser knows what a `rem` is worth there.
+- **A remote source is asked for pixels, not for `NaN`.** Gravatar, GitHub and Facebook take an
+  integer size in their URL, and `+'1.75rem'` sent them `NaN`. They now get the pixel count when
+  the size has one, and the default resolution when only layout could tell.
+
+### Changed
+
+- **BREAKING — the `avatarSizePx` getter is gone, replaced by `avatarSize()`**, a signal
+  returning `{ length, pixels }`: the CSS length to paint and the pixels behind it, or `null`
+  when only layout could resolve it. See `BREAKING_CHANGES.md`.
+
+### Added
+
+- `resolveAvatarSize()` and the `AvatarSize` type are exported, so an application that sizes its
+  own avatar-shaped boxes can read the input the same way the component does.
+- A suite covering the whole input surface — number, numeric string, `px`, `rem`, `em`, `%`,
+  `calc()`, `clamp()`, `var()` and plain rubbish — and asserting what the avatar actually writes
+  into the DOM for each.
+
 ## [22.14.0] - 2026-09-23
 
 ### Fixed

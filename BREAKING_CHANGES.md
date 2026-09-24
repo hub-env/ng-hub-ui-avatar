@@ -2,6 +2,55 @@
 
 This document details the breaking changes introduced in major versions of `ng-hub-ui-avatar` and how to migrate your codebase.
 
+## [22.15.0] - 2026-09-24
+
+### A `size` with units is honoured instead of being turned into pixels
+
+- **Change**: the `size` input now accepts any CSS length and paints it as written. A bare
+  number — or a numeric string — still means pixels. A value CSS cannot paint falls back to the
+  default 50px.
+
+- **Why**: the size was built as `size + 'px'`. Anything already carrying units came out as
+  `1.75rempx`, an invalid declaration the browser discards in silence, and the avatar rendered
+  with no box at all. `--hub-avatar-size` fared no better: `parseFloat('1.75rem')` gave `1.75px`,
+  so everything scaled from it — the badge, the ring, the group overlap — collapsed with it.
+
+- **Impact**: an avatar sized in pixels looks exactly as before. An avatar sized with units
+  changes appearance, because it now has the size it asked for: `size="50px"` is 50 pixels wide
+  rather than whatever the stylesheet was left to decide, and `size="1.75rem"` is 28 pixels at a
+  16px root instead of invisible. A size like `size="large"` now renders at 50px instead of
+  falling through to the stylesheet.
+
+- **What happens if you do nothing**: nothing stops compiling. Avatars that were broken start
+  working, which may move a layout that had been built around a collapsed avatar.
+
+- **Migration**: none, unless you had worked around the bug by dividing your own values — e.g.
+  passing `28` where you meant `1.75rem`. Those still work; you can now write the unit.
+
+### `avatarSizePx` is replaced by `avatarSize()`
+
+- **Change**: the public getter `avatarSizePx: string` is removed. `avatarSize()` is a signal
+  returning `{ length: string; pixels: number | null }` — the length CSS is asked to paint, and
+  the pixel count behind it when the unit is `px` (or absent).
+
+- **Why**: the old name promised pixels, and after this fix the host variable is whatever unit
+  the consumer wrote. A getter that returns `1.75rem` from a member called `avatarSizePx` is a
+  lie the next reader has to discover.
+
+- **Impact**: only code holding a `HubAvatarComponent` instance and reading that member — a
+  `@ViewChild` on the avatar, or a test. Templates and CSS are unaffected: the host still
+  exposes `--hub-avatar-size`.
+
+- **Migration**:
+
+```ts
+// Before
+const size = avatar.avatarSizePx; // '50px'
+
+// After
+const { length, pixels } = avatar.avatarSize(); // { length: '50px', pixels: 50 }
+```
+
 ## [22.14.0] - 2026-09-23
 
 ### Initials are no longer always white

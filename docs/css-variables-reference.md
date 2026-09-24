@@ -76,7 +76,7 @@ Defined and consumed by `projects/avatar/src/lib/avatar.component.scss`.
 
 | Variable | Default | Usage |
 | --- | --- | --- |
-| `--hub-avatar-size` | `50px` (runtime) | Avatar width/height — **written from the `size` input**; override the input, not this variable (the inline host style wins) |
+| `--hub-avatar-size` | `50px` (runtime) | Avatar width/height — **written from the `size` input**, in whatever unit it was given (a bare number is px); override the input, not this variable (the inline host style wins) |
 | `--hub-avatar-overflow` | `hidden` | Overflow clipping behavior |
 | `--hub-avatar-object-fit` | `cover` | Image content fit |
 

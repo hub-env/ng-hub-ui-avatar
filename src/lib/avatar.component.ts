@@ -20,6 +20,7 @@ import {
 import { DomSanitizer, SafeUrl, SafeValue } from '@angular/platform-browser';
 import { map, takeWhile } from 'rxjs/operators';
 import { readableAvatarInk } from './avatar-ink';
+import { AvatarSize, DEFAULT_AVATAR_PIXELS, resolveAvatarSize } from './avatar-size';
 import { HubAvatarService } from './avatar.service';
 import { AsyncSource } from './sources/async-source';
 import { AvatarSource } from './sources/avatar-source.enum';
@@ -66,8 +67,8 @@ export type HubAvatarBadgeColor = 'primary' | 'secondary' | 'success' | 'danger'
 					<img
 						[src]="src"
 						[alt]="avatarAlt()"
-						[width]="size()"
-						[height]="size()"
+						[attr.width]="requestedPixels()"
+						[attr.height]="requestedPixels()"
 						[style]="avatarStyle()"
 						[referrerPolicy]="referrerpolicy()"
 						(error)="fetchAvatarSource()"
@@ -82,8 +83,8 @@ export type HubAvatarBadgeColor = 'primary' | 'secondary' | 'success' | 'danger'
 					<img
 						[src]="src"
 						[alt]="avatarAlt()"
-						[width]="size()"
-						[height]="size()"
+						[attr.width]="requestedPixels()"
+						[attr.height]="requestedPixels()"
 						[style]="placeholderStyle()"
 						[referrerPolicy]="referrerpolicy()"
 						(error)="onPlaceholderError()"
@@ -106,7 +107,7 @@ export type HubAvatarBadgeColor = 'primary' | 'secondary' | 'success' | 'danger'
 	host: {
 		'[attr.data-badge-color]': 'badgeColor() || null',
 		'[style.--hub-avatar-badge-color]': 'badgeColorVar()',
-		'[style.--hub-avatar-size]': 'avatarSizePx'
+		'[style.--hub-avatar-size]': 'avatarSize().length'
 	}
 })
 export class HubAvatarComponent implements AfterContentInit, OnDestroy {
@@ -115,7 +116,12 @@ export class HubAvatarComponent implements AfterContentInit, OnDestroy {
 	private readonly sanitizer = inject(DomSanitizer);
 
 	readonly round = input(true);
-	readonly size = input<string | number>(50);
+	/**
+	 * Side of the avatar box. A bare number — or a numeric string — is pixels; anything
+	 * carrying units (`1.75rem`, `50%`, `calc(2rem + 4px)`) is painted as written. A value
+	 * CSS could not paint falls back to the default instead of collapsing the avatar.
+	 */
+	readonly size = input<string | number>(DEFAULT_AVATAR_PIXELS);
 
 	/**
 	 * Marks the avatar as an interactive control. When `true`, the container
@@ -300,7 +306,7 @@ export class HubAvatarComponent implements AfterContentInit, OnDestroy {
 
 		return source instanceof AsyncSource
 			? this.asyncAvatarSrc()
-			: this.sanitizer.bypassSecurityTrustUrl(source.getAvatar(+this.size()));
+			: this.sanitizer.bypassSecurityTrustUrl(source.getAvatar(this.requestedPixels()));
 	});
 
 	/** The initials (or raw value) painted right now; `null` while the avatar is a picture or unresolved. */
@@ -345,8 +351,8 @@ export class HubAvatarComponent implements AfterContentInit, OnDestroy {
 
 	/** Inline size and shape of the avatar container. */
 	protected readonly hostStyle = computed<StyleObject>(() => ({
-		width: this.size() + 'px',
-		height: this.size() + 'px',
+		width: this.avatarSize().length,
+		height: this.avatarSize().length,
 		borderRadius: this.round() ? '50%' : this.cornerRadius() + 'px'
 	}));
 
@@ -442,12 +448,19 @@ export class HubAvatarComponent implements AfterContentInit, OnDestroy {
 	}
 
 	/**
-	 * The avatar size as a px string. Exposed on the host as `--hub-avatar-size`
-	 * so the status dot (and any token-driven child) scales with the avatar.
+	 * The `size` input read as a CSS length. Exposed on the host as `--hub-avatar-size`
+	 * so the badge (and any token-driven child) scales with the avatar, whatever unit it
+	 * was sized in.
 	 */
-	get avatarSizePx(): string {
-		return (parseFloat(String(this.size())) || 50) + 'px';
-	}
+	readonly avatarSize = computed<AvatarSize>(() => resolveAvatarSize(this.size()));
+
+	/**
+	 * Pixels to ask a remote source for, and to advertise as the image's intrinsic size.
+	 * A relative length is worth whatever the page makes of it, which only layout knows, so
+	 * the default resolution is requested rather than a guess derived from an assumed root
+	 * font size.
+	 */
+	protected readonly requestedPixels = computed<number>(() => this.avatarSize().pixels ?? DEFAULT_AVATAR_PIXELS);
 
 	/**
 	 * Retires the source painting the avatar and hands over to the next usable one. Bound to
@@ -502,6 +515,17 @@ export class HubAvatarComponent implements AfterContentInit, OnDestroy {
 	}
 
 	/**
+	 * Font size of the initials, a fraction of the avatar's own size. Pixels are divided
+	 * here — and floored, as they always were — while a relative length is handed to `calc()`
+	 * so the browser divides it once it knows what a `rem` is worth on that page.
+	 */
+	private initialsFontSize(): string {
+		const { length, pixels } = this.avatarSize();
+		const ratio = this.textSizeRatio();
+		return pixels === null ? `calc(${length} / ${ratio})` : `${Math.floor(pixels / ratio)}px`;
+	}
+
+	/**
 	 *
 	 * returns initials style
 	 *
@@ -527,8 +551,8 @@ export class HubAvatarComponent implements AfterContentInit, OnDestroy {
 			// `.avatar-content { font-family: var(--hub-avatar-font-family, …) }` so the
 			// initials honour the same token as the rest of the avatar (a `font` shorthand
 			// here would pin Helvetica and shadow it).
-			fontSize: Math.floor(+this.size() / this.textSizeRatio()) + 'px',
-			lineHeight: this.size() + 'px',
+			fontSize: this.initialsFontSize(),
+			lineHeight: this.avatarSize().length,
 			...this.getCustomStyleObject()
 		};
 	}
@@ -546,8 +570,8 @@ export class HubAvatarComponent implements AfterContentInit, OnDestroy {
 			maxWidth: '100%',
 			borderRadius: hasCornerRadius ? (this.round() ? '50%' : this.cornerRadius() + 'px') : undefined,
 			border: borderColor ? '1px solid ' + borderColor : undefined,
-			width: this.size() + 'px',
-			height: this.size() + 'px',
+			width: this.avatarSize().length,
+			height: this.avatarSize().length,
 			...this.getCustomStyleObject()
 		};
 	}
@@ -597,10 +621,10 @@ export class HubAvatarComponent implements AfterContentInit, OnDestroy {
 		}
 
 		this.avatarService
-			.fetchAvatar(source.getAvatar(+this.size()))
+			.fetchAvatar(source.getAvatar(this.requestedPixels()))
 			.pipe(
 				takeWhile(() => this.isAlive),
-				map((response) => source.processResponse(response, +this.size()))
+				map((response) => source.processResponse(response, this.requestedPixels()))
 			)
 			.subscribe({
 				// Both land after the pass that would have painted them, so under OnPush nothing
